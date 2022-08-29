@@ -4,7 +4,6 @@ import (
 	"api/bong"
 	"api/utils"
 	"encoding/json"
-	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,7 +15,7 @@ func signup(g fiber.Router) {
 
   signup.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
       var student bong.Student
-      utils.GetLocals(c.Locals("student"), &student)
+      utils.GetLocals(c, "student", &student)
       return c.JSON(student)
   })
   
@@ -69,8 +68,7 @@ func signup(g fiber.Router) {
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
   
     var student bong.Student
-    utils.GetLocals(c.Locals("student"), &student)
-    fmt.Println(student)
+    utils.GetLocals(c, "student", &student)
     student.Phone = body["phone"]
 
     token, err := bong.GenStudentToken(student)

@@ -4,7 +4,6 @@ import (
 	"api/bong"
 	"api/utils"
 	"encoding/json"
-	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,7 +15,7 @@ func signup(g fiber.Router) {
 
   signup.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
     var parent bong.Parent
-    utils.GetLocals(c.Locals("parent"), &parent)
+    utils.GetLocals(c, "parent", parent)
     return c.JSON(parent)
   })
 
@@ -69,8 +68,7 @@ func signup(g fiber.Router) {
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
 
     var parent bong.Parent
-    utils.GetLocals(c.Locals("parent"), &parent)
-    fmt.Println(parent)
+    utils.GetLocals(c, "parent", parent)
     parent.Phone = body["phone"]
 
     token, err := bong.GenParentToken(parent)

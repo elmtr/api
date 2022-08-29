@@ -30,8 +30,8 @@ func GenCode() string {
   return code
 }
 
-func GetLocals(locals interface{}, result interface{}) {
-  json.Unmarshal([]byte(fmt.Sprintf("%v", locals)), &result)
+func GetLocals(c *fiber.Ctx, name string, result interface{}) {
+  json.Unmarshal([]byte(fmt.Sprintf("%v", c.Locals(name))), &result)
 } 
 
 func SetLocals(c *fiber.Ctx, name string,  data interface{}) {
