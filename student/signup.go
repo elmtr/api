@@ -86,6 +86,26 @@ func signup(g fiber.Router) {
     }
   })
 
+  signup.Post("/grade", authMiddleware, func (c *fiber.Ctx) error {
+    var grade bong.Grade
+    json.Unmarshal(c.Body(), &grade)
+
+    student, err := bong.StudentSetup(c.Locals("id"), grade)
+    if err != nil {
+      return utils.Error(c, err)
+    }
+
+    token, err := bong.GenStudentToken(student)
+    if err != nil {
+      return utils.Error(c, err)
+    }
+
+    return c.JSON(bson.M{
+      "student": student,
+      "token": token,
+    })
+  })
+
   signup.Post("/password", authMiddleware, func (c *fiber.Ctx) error {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)

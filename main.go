@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"api/admin"
 	"api/bong"
 	"api/parent"
 	"api/student"
@@ -32,6 +33,7 @@ func main() {
   teacher.Routes(app)
   student.Routes(app)
   parent.Routes(app)
+  admin.Routes(app)
 
   log.Fatal(app.Listen(":4200"))
 }
