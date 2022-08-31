@@ -11,4 +11,5 @@ func Routes(app *fiber.App) {
   login(g)
   get(g)
   update(g)
+  timetable(g)
 }
