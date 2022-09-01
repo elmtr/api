@@ -19,6 +19,21 @@ func update(g fiber.Router) {
     return c.JSON(draftMark)
   })
 
+  g.Patch("/truancies", authMiddleware, func (c *fiber.Ctx) error {
+    id := c.Query("id")
+
+    truancy, err := bong.MotivateTruancy(
+      bson.M{
+        "id": id,
+      },
+    )
+    if err != nil {
+      return utils.Error(c, err)
+    }
+
+    return c.JSON(truancy)
+  })
+
   g.Patch("/points/increase", authMiddleware, func (c *fiber.Ctx) error {
     points, err := bong.IncreasePoints(
       bson.M {

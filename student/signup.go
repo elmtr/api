@@ -40,12 +40,6 @@ func signup(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    err := bong.UpdateStudent(c.Locals("id"), bson.M{"phone": body["phone"]})
-
-    if err != nil {
-      return utils.Error(c, err)
-    }
-
     code := utils.GenCode()
     utils.SendSMS("+4" + body["phone"], code)
 
@@ -66,6 +60,11 @@ func signup(g fiber.Router) {
     hashedCode, _ := bong.Get("code:" + body["phone"])
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
+
+    err := bong.UpdateStudent(c.Locals("id"), bson.M{"phone": body["phone"]})
+    if err != nil {
+      return utils.Error(c, err)
+    }
   
     var student bong.Student
     utils.GetLocals(c, "student", &student)

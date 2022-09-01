@@ -16,7 +16,7 @@ func signup(g fiber.Router) {
 
   signup.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
     var teacher bong.Teacher
-    utils.GetLocals(c, "teacher", teacher)
+    utils.GetLocals(c, "teacher", &teacher)
     return c.JSON(teacher)
   })
 
@@ -41,12 +41,6 @@ func signup(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    err := bong.UpdateTeacher(c.Locals("id"), bson.M{"phone": body["phone"]})
-
-    if err != nil {
-      return utils.Error(c, err)
-    }
-
     code := utils.GenCode()
     utils.SendSMS("+4" + body["phone"], code)
 
@@ -67,9 +61,14 @@ func signup(g fiber.Router) {
     hashedCode, _ := bong.Get("code:" + body["phone"])
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
+
+    err := bong.UpdateTeacher(c.Locals("id"), bson.M{"phone": body["phone"]})
+    if err != nil {
+      return utils.Error(c, err)
+    }
   
     var teacher bong.Teacher
-    utils.GetLocals(c, "teacher", teacher)
+    utils.GetLocals(c, "teacher", &teacher)
     teacher.Phone = body["phone"]
 
     token, err := bong.GenTeacherToken(teacher)
@@ -80,6 +79,7 @@ func signup(g fiber.Router) {
     if compareErr == nil {
       bong.Del("code:" + body["phone"])
       return c.JSON(bson.M{
+        "teacher": teacher,
         "token": token,
       })
     } else {

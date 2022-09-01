@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 var MongoURI string = "mongodb+srv://stevensun:stevensun@dev.ne1g1.mongodb.net/dev?retryWrites=true&w=majority"
@@ -22,6 +23,10 @@ var RedisOptions *redis.Options = &redis.Options {
 
 func main() {
   app := fiber.New()
+
+  app.Use(cors.New(cors.Config{
+    AllowOrigins: "*",
+  }))
 
   bong.InitDB(MongoURI)
   bong.InitCache(RedisOptions)

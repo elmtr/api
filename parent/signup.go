@@ -15,7 +15,7 @@ func signup(g fiber.Router) {
 
   signup.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
     var parent bong.Parent
-    utils.GetLocals(c, "parent", parent)
+    utils.GetLocals(c, "parent", &parent)
     return c.JSON(parent)
   })
 
@@ -67,8 +67,13 @@ func signup(g fiber.Router) {
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
 
+    err := bong.UpdateParent(c.Locals("id"), bson.M{"phone": body["phone"]})
+    if err != nil {
+      return utils.Error(c, err)
+    }
+
     var parent bong.Parent
-    utils.GetLocals(c, "parent", parent)
+    utils.GetLocals(c, "parent", &parent)
     parent.Phone = body["phone"]
 
     token, err := bong.GenParentToken(parent)
