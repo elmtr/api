@@ -9,6 +9,19 @@ import (
 )
 
 func get(g fiber.Router) {
+  g.Get("/student", authMiddleware, func (c *fiber.Ctx) error {
+    student, err := bong.GetStudent(
+      bson.M{
+        "id": c.Query("id"),
+      },
+    )
+    if err != nil {
+      return utils.Error(c, err)
+    }
+
+    return c.JSON(student)
+  })
+
   g.Get("/marks", authMiddleware, func (c *fiber.Ctx) error {
     marks, err := bong.GetMarks(
       bson.M{

@@ -10,6 +10,6 @@ func Routes(app *fiber.App) {
   signup(g)
   login(g)
   get(g)
-  update(g)
   timetable(g)
+  profile(g)
 }

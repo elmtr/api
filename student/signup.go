@@ -76,7 +76,7 @@ func signup(g fiber.Router) {
     }
 
     if compareErr == nil {
-      // bong.Del("code:" + body["phone"])
+      bong.Del("code:" + body["phone"])
       return c.JSON(bson.M{
         "token": token,
       })
