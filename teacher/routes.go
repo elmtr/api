@@ -14,4 +14,5 @@ func Routes(app *fiber.App) {
   update(g)
   timetable(g)
   profile(g)
+  homeroom(g)
 }
