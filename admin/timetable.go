@@ -35,7 +35,6 @@ func timetable(g fiber.Router) {
     day, _ := strconv.Atoi(body["day"])
     interval, _ := strconv.Atoi(body["interval"])
 
-
     subject, err := bong.GetSubject(
       bson.M{
         "name": body["name"],
@@ -96,6 +95,4 @@ func timetable(g fiber.Router) {
 
     return c.JSON(period)
   })
-
-
 }
