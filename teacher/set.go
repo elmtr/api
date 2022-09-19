@@ -1,48 +1,45 @@
 package teacher
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func set(g fiber.Router) {
   g.Post("/marks", authMiddleware, func (c *fiber.Ctx) error {
-    var mark bong.Mark
+    var mark grip.Mark
     json.Unmarshal(c.Body(), &mark)
 
-    mark.Insert()
+    mark.Put()
 
     return c.JSON(mark)
   })
 
   g.Post("/truancies", authMiddleware, func (c *fiber.Ctx) error {
-    var truancy bong.Truancy
+    var truancy grip.Truancy
     json.Unmarshal(c.Body(), &truancy)
 
-    truancy.Insert()
+    truancy.Put()
 
     return c.JSON(truancy)
   })
 
   g.Post("/draftmarks", authMiddleware, func (c *fiber.Ctx) error {
-    var draftMark bong.DraftMark
+    var draftMark grip.DraftMark
     json.Unmarshal(c.Body(), &draftMark)
 
-    draftMark.Insert()
+    draftMark.Put()
 
     return c.JSON(draftMark)
   })
 
   g.Post("/draftmarks/definitivate", authMiddleware, func (c *fiber.Ctx) error {
-    mark, err := bong.DefinitivateDraftMark(
-      bson.M{
-        "id": c.Query("id"),
-      },
-    )
+    key := fmt.Sprintf("%v", c.Query("key"))
+    mark, err := grip.DefinitivateDraftMark(key)
     if err != nil {
       return utils.Error(c, err)
     }

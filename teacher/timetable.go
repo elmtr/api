@@ -1,32 +1,31 @@
 package teacher
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func timetable(g fiber.Router) {
   tt := g.Group("/timetable")
 
   tt.Get("/", authMiddleware, func (c *fiber.Ctx) error {
-    var teacher bong.Teacher
+    var teacher grip.Teacher
     utils.GetLocals(c, "teacher", &teacher)
 
-    subjectsIDList := []string {}
+    subjectsKeyList := []string {}
     for _, subject := range teacher.Subjects {
-      subjectsIDList = append(subjectsIDList, subject.ID)
+      subjectsKeyList = append(subjectsKeyList, subject.Key)
     }
 
-    periods, err := bong.GetPeriods(
-      bson.M{
-        "subject.id": bson.M{
-          "$in": subjectsIDList,
-        },
+    // TODO: do this operation for each and every subject 
+    // in the subjectsKeyList: deta doesn't support anything similar to $in
+    periods, err := grip.GetPeriods(
+      base.Query {
+        {"subject.key?contains": subjectsKeyList},
       },
-      bong.PeriodSort,
     )
     if err != nil {
       return utils.Error(c, err)

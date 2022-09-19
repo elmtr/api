@@ -1,13 +1,13 @@
 package admin
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
 	"strconv"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func student(g fiber.Router) {
@@ -16,9 +16,9 @@ func student(g fiber.Router) {
   student.Get("", authMiddleware, func (c *fiber.Ctx) error {
     phone := c.Query("phone")
 
-    student, err := bong.GetStudent(
-      bson.M{
-        "phone": phone,
+    student, err := grip.GetStudent(
+      base.Query {
+        {"phone": phone},
       },
     )
     if err != nil {
@@ -28,75 +28,77 @@ func student(g fiber.Router) {
     return c.JSON(student)
   })
 
-  student.Post("/subjects/add", authMiddleware, func (c *fiber.Ctx) error {
-    var body map[string]string
-    json.Unmarshal(c.Body(), &body)
+  // student.Post("/subjects/add", authMiddleware, func (c *fiber.Ctx) error {
+  //   var body map[string]string
+  //   json.Unmarshal(c.Body(), &body)
 
-    student, err := bong.GetStudent(
-      bson.M{
-        "id": body["id"],
-      },
-    )
-    if err != nil {
-      return utils.Error(c, err)
-    }
+  //   student, err := grip.GetStudent(
+  //     base.Query {
+  //       {"key": body["key"]},
+  //     },
+  //   )
+  //   if err != nil {
+  //     return utils.Error(c, err)
+  //   }
 
-    subject, err := bong.GetSubject(
-      bson.M{
-        "grade.id": student.Grade.ID,
-        "name": body["name"],
-      },
-    )
-    if err != nil {
-      return utils.Error(c, err)
-    }
-    shortSubject := bong.ShortSubject {
-      ID: subject.ID,
-      Name: subject.Name,
-    }
+  //   subject, err := grip.GetSubject(
+  //     base.Query{
+  //       {
+  //         "grade.key": student.Grade.Key,
+  //         "name": body["name"],
+  //       },
+  //     },
+  //   )
+  //   if err != nil {
+  //     return utils.Error(c, err)
+  //   }
+  //   shortSubject := grip.ShortSubject {
+  //     ID: subject.ID,
+  //     Name: subject.Name,
+  //   }
 
-    student.Subjects, err = bong.AddStudentSubject(student.ID, student.Subjects, shortSubject)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+  //   student.Subjects, err = grip.AddStudentSubject(student.ID, student.Subjects, shortSubject)
+  //   if err != nil {
+  //     return utils.Error(c, err)
+  //   }
 
-    return c.JSON(student)
-  })
+  //   return c.JSON(student)
+  // })
 
-  student.Post("/subjects/remove", authMiddleware, func (c *fiber.Ctx) error {
-    var body map[string]string
-    json.Unmarshal(c.Body(), &body)
+  // student.Post("/subjects/remove", authMiddleware, func (c *fiber.Ctx) error {
+  //   var body map[string]string
+  //   json.Unmarshal(c.Body(), &body)
 
-    student, err := bong.GetStudent(
-      bson.M{
-        "id": body["id"],
-      },
-    )
-    if err != nil {
-      return utils.Error(c, err)
-    }
+  //   student, err := grip.GetStudent(
+  //     base.Query {
+  //       "id": body["id"],
+  //     },
+  //   )
+  //   if err != nil {
+  //     return utils.Error(c, err)
+  //   }
 
-    subject, err := bong.GetSubject(
-      bson.M{
-        "grade.id": student.Grade.ID,
-        "name": body["name"],
-      },
-    )
-    if err != nil {
-      return utils.Error(c, err)
-    }
-    shortSubject := bong.ShortSubject {
-      ID: subject.ID,
-      Name: subject.Name,
-    }
+  //   subject, err := grip.GetSubject(
+  //     base.Query {
+  //       "grade.id": student.Grade.ID,
+  //       "name": body["name"],
+  //     },
+  //   )
+  //   if err != nil {
+  //     return utils.Error(c, err)
+  //   }
+  //   shortSubject := grip.ShortSubject {
+  //     ID: subject.ID,
+  //     Name: subject.Name,
+  //   }
 
-    student.Subjects, err = bong.RemoveStudentSubject(student.ID, student.Subjects, shortSubject)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+  //   student.Subjects, err = grip.RemoveStudentSubject(student.ID, student.Subjects, shortSubject)
+  //   if err != nil {
+  //     return utils.Error(c, err)
+  //   }
 
-    return c.JSON(student)
-  })
+  //   return c.JSON(student)
+  // })
 
   student.Patch("/grade", authMiddleware, func (c *fiber.Ctx) error {
     var body map[string]string
@@ -104,21 +106,23 @@ func student(g fiber.Router) {
 
     gradeNumber, _ := strconv.Atoi(body["gradeNumber"])
 
-    grade, err := bong.GetGrade(
-      bson.M{
-        "gradeNumber": gradeNumber,
-        "gradeLetter": body["gradeLetter"],
+    grade, err := grip.GetGrade(
+      base.Query {
+        {
+          "gradeNumber": gradeNumber,
+          "gradeLetter": body["gradeLetter"],
+        },
       },
     )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    student, err := bong.UpdateStudentGrade(body["id"], grade)
+    err = grip.UpdateStudentGrade(body["key"], grade)
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(student)
+    return c.JSON(grade)
   })
 }

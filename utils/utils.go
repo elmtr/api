@@ -6,7 +6,6 @@ import (
 	"math/rand"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Encoding array
@@ -45,7 +44,7 @@ func Error(c *fiber.Ctx, err error) error  {
 } 
 
 func MessageError(c *fiber.Ctx, message string) error {
-  return c.Status(401).JSON(bson.M{
+  return c.Status(401).JSON(map[string]interface{} {
     "message": message,
   })
 }

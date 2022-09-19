@@ -2,12 +2,13 @@ package teacher
 
 import (
 	"encoding/json"
+	"fmt"
 
-	"api/bong"
+	"api/grip"
 	"api/utils"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,23 +16,20 @@ func signup(g fiber.Router) {
   signup := g.Group("/signup")
 
   signup.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
-    var teacher bong.Teacher
+    var teacher grip.Teacher
     utils.GetLocals(c, "teacher", &teacher)
     return c.JSON(teacher)
   })
 
   signup.Post("/basic", func (c *fiber.Ctx) error {
-    var teacher bong.Teacher
+    var teacher grip.Teacher
     json.Unmarshal(c.Body(), &teacher)
 
-    teacher.Insert()
+    teacher.Put()
 
-    token, err := bong.GenTeacherToken(teacher)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token := grip.GenTeacherToken(teacher)
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "teacher": teacher,
       "token": token,
     })
@@ -45,7 +43,7 @@ func signup(g fiber.Router) {
     utils.SendSMS("+4" + body["phone"], code)
 
     hashedCode, err := bcrypt.GenerateFromPassword([]byte(code), 10)
-    bong.Set("code:" + body["phone"], string(hashedCode))
+    grip.Set("code:" + body["phone"], string(hashedCode))
 
     if err != nil {
       return utils.Error(c, err)
@@ -58,27 +56,29 @@ func signup(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    hashedCode, _ := bong.Get("code:" + body["phone"])
+    hashedCode, _ := grip.Get("code:" + body["phone"])
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
 
-    err := bong.UpdateTeacher(c.Locals("id"), bson.M{"phone": body["phone"]})
+    key := fmt.Sprintf("%v", c.Locals("key"))
+    err := grip.UpdateTeacher(key, 
+      base.Updates {
+        "phone": body["phone"],
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
   
-    var teacher bong.Teacher
+    var teacher grip.Teacher
     utils.GetLocals(c, "teacher", &teacher)
     teacher.Phone = body["phone"]
 
-    token, err := bong.GenTeacherToken(teacher)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token := grip.GenTeacherToken(teacher)
 
     if compareErr == nil {
-      bong.Del("code:" + body["phone"])
-      return c.JSON(bson.M{
+      grip.Del("code:" + body["phone"])
+      return c.JSON(map[string]interface{} {
         "teacher": teacher,
         "token": token,
       })
@@ -96,18 +96,27 @@ func signup(g fiber.Router) {
       return utils.Error(c, err)
     }
 
-    bong.UpdateTeacher(c.Locals("id"), bson.M{"password": string(hashedPassword)})
+    key := fmt.Sprintf("%V", c.Locals("key"))
+    grip.UpdateTeacher(key, 
+      base.Updates {
+        "password": string(hashedPassword),
+      },
+    )
 
     if err != nil {
       return utils.Error(c, err)
     }
 
-    teacher, _ := bong.GetTeacher(bson.M{"id": c.Locals("id")})
+    teacher, _ := grip.GetTeacher(
+      base.Query {
+        {"id": c.Locals("id")},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "teacher": teacher,
     })
   })
@@ -121,18 +130,27 @@ func signup(g fiber.Router) {
       return utils.Error(c, err)
     }
 
-    bong.UpdateTeacher(c.Locals("id"), bson.M{"passcode": string(hashedPasscode)})
+    key := fmt.Sprintf("%v", c.Locals("key"))
+    grip.UpdateTeacher(key, 
+      base.Updates {
+        "passcode": string(hashedPasscode),
+      },
+    )
 
     if err != nil {
       return utils.Error(c, err)
     }
 
-    teacher, _ := bong.GetTeacher(bson.M{"id": c.Locals("id")})
+    teacher, _ := grip.GetTeacher(
+      base.Query {
+        {"id": c.Locals("id")},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "teacher": teacher,
     })
   })

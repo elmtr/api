@@ -1,12 +1,13 @@
 package student
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
+	"fmt"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,23 +15,20 @@ func signup(g fiber.Router) {
   signup := g.Group("/signup")
 
   signup.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
-      var student bong.Student
+      var student grip.Student
       utils.GetLocals(c, "student", &student)
       return c.JSON(student)
   })
   
   signup.Post("/basic", func (c *fiber.Ctx) error {
-    var student bong.Student
+    var student grip.Student
     json.Unmarshal(c.Body(), &student)
 
-    student.Insert()
+    student.Put()
 
-    token, err := bong.GenStudentToken(student)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token := grip.GenStudentToken(student)
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "student": student,
       "token": token,
     })
@@ -44,7 +42,7 @@ func signup(g fiber.Router) {
     utils.SendSMS("+4" + body["phone"], code)
 
     hashedCode, err := bcrypt.GenerateFromPassword([]byte(code), 10)
-    bong.Set("code:" + body["phone"], string(hashedCode))
+    grip.Set("code:" + body["phone"], string(hashedCode))
 
     if err != nil {
       return utils.Error(c, err)
@@ -57,27 +55,29 @@ func signup(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    hashedCode, _ := bong.Get("code:" + body["phone"])
+    hashedCode, _ := grip.Get("code:" + body["phone"])
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
 
-    err := bong.UpdateStudent(c.Locals("id"), bson.M{"phone": body["phone"]})
+    key := fmt.Sprintf("%v", c.Locals("key"))
+    err := grip.UpdateStudent(key, 
+      base.Updates{
+        "phone": body["phone"],
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
   
-    var student bong.Student
+    var student grip.Student
     utils.GetLocals(c, "student", &student)
     student.Phone = body["phone"]
 
-    token, err := bong.GenStudentToken(student)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token := grip.GenStudentToken(student)
 
     if compareErr == nil {
-      bong.Del("code:" + body["phone"])
-      return c.JSON(bson.M{
+      grip.Del("code:" + body["phone"])
+      return c.JSON(map[string]interface{} {
         "token": token,
       })
     } else {
@@ -86,20 +86,18 @@ func signup(g fiber.Router) {
   })
 
   signup.Post("/grade", authMiddleware, func (c *fiber.Ctx) error {
-    var grade bong.Grade
+    var grade grip.Grade
     json.Unmarshal(c.Body(), &grade)
 
-    student, err := bong.StudentSetup(c.Locals("id"), grade)
+    key := fmt.Sprintf("%v", c.Locals("key"))
+    student, err := grip.StudentSetup(key, grade)
     if err != nil {
       return utils.Error(c, err)
     }
 
-    token, err := bong.GenStudentToken(student)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token := grip.GenStudentToken(student)
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "student": student,
       "token": token,
     })
@@ -114,18 +112,27 @@ func signup(g fiber.Router) {
       return utils.Error(c, err)
     }
 
-    bong.UpdateStudent(c.Locals("id"), bson.M{"password": string(hashedPassword)})
+    key := fmt.Sprintf("%v", c.Locals("key"))
+    grip.UpdateStudent(key, 
+      base.Updates {
+        "password": string(hashedPassword),
+      },
+    )
 
     if err != nil {
       return utils.Error(c, err)
     }
 
-    student, _ := bong.GetStudent(bson.M{"id": c.Locals("id")})
+    student, _ := grip.GetStudent(
+      base.Query{
+        {"key": c.Locals("key")},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "student": student,
     })
   })
@@ -139,18 +146,27 @@ func signup(g fiber.Router) {
       return utils.Error(c, err)
     }
 
-    bong.UpdateStudent(c.Locals("id"), bson.M{"passcode": string(hashedPasscode)})
+    key := fmt.Sprintf("%v", c.Locals("key"))
+    grip.UpdateStudent(key, 
+      base.Updates {
+        "passcode": string(hashedPasscode),
+      },
+    )
 
     if err != nil {
       return utils.Error(c, err)
     }
 
-    student, _ := bong.GetStudent(bson.M{"id": c.Locals("id")})
+    student, _ := grip.GetStudent(
+      base.Query {
+        {"key": c.Locals("key")},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "student": student,
     })
   })

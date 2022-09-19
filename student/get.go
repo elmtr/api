@@ -1,24 +1,25 @@
 package student
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func get(g fiber.Router) {
   g.Get("/marks", authMiddleware, func (c *fiber.Ctx) error {
-    var student bong.Student
+    var student grip.Student
     utils.GetLocals(c, "student", &student)
 
-    marks, err := bong.GetMarks(
-      bson.M{
-        "subjectID": c.Query("subjectID"),
-        "studentID": student.ID,
+    marks, err := grip.GetMarks(
+      base.Query {
+        {
+          "subjectKey": c.Query("subjectKey"),
+          "studentKey": student.Key,
+        },
       },
-      bong.DateSort,
     )
     if err != nil {
       return utils.Error(c, err)
@@ -28,15 +29,16 @@ func get(g fiber.Router) {
   })
 
   g.Get("/truancies", authMiddleware, func (c *fiber.Ctx) error {
-    var student bong.Student
+    var student grip.Student
     utils.GetLocals(c, "student", &student)
 
-    truancies, err := bong.GetTruancies(
-      bson.M{
-        "subjectID": c.Query("subjectID"),
-        "studentID": student.ID,
+    truancies, err := grip.GetTruancies(
+      base.Query {
+        {
+          "subjectKey": c.Query("subjectKey"),
+          "studentKey": student.Key,
+        },
       },
-      bong.DateSort,
     )
     if err != nil {
       return utils.Error(c, err)
@@ -46,15 +48,16 @@ func get(g fiber.Router) {
   })
 
   g.Get("/draftmarks", authMiddleware, func (c *fiber.Ctx) error {
-    var student bong.Student
+    var student grip.Student
     utils.GetLocals(c, "student", &student)
 
-    draftMarks, err := bong.GetDraftMarks(
-      bson.M{
-        "subjectID": c.Query("subjectID"),
-        "studentID": student.ID,
+    draftMarks, err := grip.GetDraftMarks(
+      base.Query {
+        {
+          "subjectKey": c.Query("subjectKey"),
+          "studentKey": student.Key,
+        },
       },
-      bong.DateSort,
     )
     if err != nil {
       return utils.Error(c, err)
@@ -64,13 +67,15 @@ func get(g fiber.Router) {
   })
 
   g.Get("/points", authMiddleware, func (c *fiber.Ctx) error {
-    var student bong.Student
+    var student grip.Student
     utils.GetLocals(c, "student", &student)
 
-    points, err := bong.GetPoints(
-      bson.M{
-        "subjectID": c.Query("subjectID"),
-        "studentID": student.ID,
+    points, err := grip.GetPoints(
+      base.Query {
+        {
+          "subjectKey": c.Query("subjectKey"),
+          "studentKey": student.Key,
+        },
       },
     )
     if err != nil {

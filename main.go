@@ -5,9 +5,11 @@ import (
 
 	"api/admin"
 	"api/bong"
+	"api/grip"
 	"api/parent"
 	"api/student"
 	"api/teacher"
+	"api/test"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
@@ -29,6 +31,7 @@ func main() {
   }))
 
   bong.InitDB(MongoURI)
+  grip.InitDB(DetaKey)
   bong.InitCache(RedisOptions)
 
   app.Get("/test", func (c *fiber.Ctx) error {
@@ -39,6 +42,7 @@ func main() {
   student.Routes(app)
   parent.Routes(app)
   admin.Routes(app)
+  test.Routes(app)
 
   log.Fatal(app.Listen(":4200"))
 }

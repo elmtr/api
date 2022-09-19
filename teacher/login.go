@@ -1,12 +1,12 @@
 package teacher
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -21,7 +21,11 @@ func login(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    teacher, err := bong.GetTeacher(bson.M{"phone": body["phone"]})
+    teacher, err := grip.GetTeacher(
+      base.Query {
+        {"phone": body["phone"]},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
@@ -35,7 +39,7 @@ func login(g fiber.Router) {
     utils.SendSMS("+4" + body["phone"], code)
 
     hashedCode, err := bcrypt.GenerateFromPassword([]byte(code), 10)
-    bong.Set("code:" + body["phone"], string(hashedCode))
+    grip.Set("code:" + body["phone"], string(hashedCode))
 
     if err != nil {
       return utils.Error(c, err)
@@ -48,18 +52,22 @@ func login(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    hashedCode, _ := bong.Get("code:" + body["phone"])
+    hashedCode, _ := grip.Get("code:" + body["phone"])
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
   
-    teacher, err := bong.GetTeacher(bson.M{"phone": body["phone"]})
+    teacher, err := grip.GetTeacher(
+      base.Query{
+        {"phone": body["phone"]},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
     if compareErr == nil {
-      bong.Del("code:" + body["phone"])
-      return c.JSON(bson.M{
+      grip.Del("code:" + body["phone"])
+      return c.JSON(map[string]interface{} {
         "teacher": teacher,
       })
     } else {
@@ -71,22 +79,23 @@ func login(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    teacher, err := bong.GetTeacher(bson.M{"phone": body["phone"]})
+    teacher, err := grip.GetTeacher(
+      base.Query {
+        {"phone": body["phone"]},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    token, err := bong.GenTeacherToken(teacher)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token:= grip.GenTeacherToken(teacher)
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(teacher.Passcode), []byte(body["passcode"]))
     if compareErr != nil {
       return utils.MessageError(c, "Parola introdus nu este valid")
     }
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "teacher": teacher,
       "token": token,
     })

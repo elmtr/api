@@ -1,24 +1,23 @@
 package admin
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
 	"strconv"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func timetable(g fiber.Router) {
   tt := g.Group("/timetable")
 
   tt.Get("/", authMiddleware, func (c *fiber.Ctx) error {
-    periods, err := bong.GetPeriods(
-      bson.M{
-        "subject.grade.id": c.Query("id"),
+    periods, err := grip.GetPeriods(
+      base.Query {
+        {"subject.grade.key": c.Query("key")},
       },
-      bong.PeriodSort,
     )
     if err != nil {
       return utils.Error(c, err)
@@ -35,36 +34,34 @@ func timetable(g fiber.Router) {
     day, _ := strconv.Atoi(body["day"])
     interval, _ := strconv.Atoi(body["interval"])
 
-    subject, err := bong.GetSubject(
-      bson.M{
-        "name": body["name"],
-        "grade.gradeNumber": gradeNumber,
-        "grade.gradeLetter": body["gradeLetter"],
+    subject, err := grip.GetSubject(
+      base.Query {
+        {
+          "name": body["name"],
+          "grade.gradeNumber": gradeNumber,
+          "grade.gradeLetter": body["gradeLetter"],
+        },
       },
     )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    period := bong.Period {
+    period := grip.Period {
       Day: day,
       Interval: interval,
       Room: body["room"],
       Subject: subject,
     }
-    period.Insert()
+    period.Put()
 
     return c.JSON(period)
   })
 
   tt.Delete("/", authMiddleware, func (c *fiber.Ctx) error {
-    id := c.Query("id")
+    key := c.Query("key")
 
-    err := bong.DeletePeriod(
-      bson.M{
-        "id": id,
-      },
-    )
+    err := grip.DeletePeriod(key)
     if err != nil {
       return utils.Error(c, err)
     }
@@ -77,22 +74,24 @@ func timetable(g fiber.Router) {
     json.Unmarshal(c.Body(), &body)
     gradeNumber, _ := strconv.Atoi(body["gradeNumber"])
 
-    subject, err := bong.GetSubject(
-      bson.M{
-        "name": body["name"],
-        "grade.gradeNumber": gradeNumber,
-        "grade.gradeLetter": body["gradeLetter"],
+    subject, err := grip.GetSubject(
+      base.Query {
+        {
+          "name": body["name"],
+          "grade.gradeNumber": gradeNumber,
+          "grade.gradeLetter": body["gradeLetter"],
+        },
       },
     )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    period, err := bong.UpdatePeriod(c.Query("id"), subject, body["room"])
+    err = grip.UpdatePeriod(c.Query("key"), subject, body["room"])
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(period)
+    return c.JSON(subject)
   })
 }

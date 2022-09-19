@@ -1,17 +1,16 @@
 package teacher
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func update(g fiber.Router) {
   g.Put("/draftmarks", authMiddleware, func (c *fiber.Ctx) error {
-    var draftMark bong.DraftMark
+    var draftMark grip.DraftMark
     json.Unmarshal(c.Body(), &draftMark)
 
     draftMark.Update()
@@ -20,47 +19,31 @@ func update(g fiber.Router) {
   })
 
   g.Patch("/truancies", authMiddleware, func (c *fiber.Ctx) error {
-    id := c.Query("id")
+    key := c.Query("key")
 
-    truancy, err := bong.MotivateTruancy(
-      bson.M{
-        "id": id,
-      },
-    )
+    err := grip.MotivateTruancy(key)
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(truancy)
+    return c.JSON("ok")
   })
 
   g.Patch("/points/increase", authMiddleware, func (c *fiber.Ctx) error {
-    points, err := bong.IncreasePoints(
-      bson.M {
-        "subjectID": c.Query("subjectID"),
-        "studentID": c.Query("studentID"),
-      },
-    )
+    err := grip.IncreasePoints(c.Query("key"))
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(points)
+    return c.JSON("ok")
   })
 
   g.Patch("/points/decrease", authMiddleware, func (c *fiber.Ctx) error {
-    points, err := bong.DecreasePoints(
-      bson.M {
-        "subjectID": c.Query("subjectID"),
-        "studentID": c.Query("studentID"),
-      },
-    )
+    err := grip.DecreasePoints(c.Query("key"))
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(points)
-  })
-
-  
+    return c.JSON("ok")
+  })  
 }

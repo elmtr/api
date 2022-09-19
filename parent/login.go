@@ -1,27 +1,34 @@
 package parent
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func login(g fiber.Router) {
   login := g.Group("/login")
 
-  login.Get("/test", func (c *fiber.Ctx) error {
-    return c.SendString("hello")
+  login.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
+    var parent grip.Parent
+    utils.GetLocals(c, "parent", &parent)
+
+    return c.JSON(parent)
   })
 
   login.Post("", func (c *fiber.Ctx) error {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    parent, err := bong.GetParent(bson.M{"phone": body["phone"]})
+    parent, err := grip.GetParent(
+      base.Query{
+        {"phone": body["phone"]},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
@@ -35,7 +42,7 @@ func login(g fiber.Router) {
     utils.SendSMS("+4" + body["phone"], code)
 
     hashedCode, err := bcrypt.GenerateFromPassword([]byte(code), 10)
-    bong.Set("code:" + body["phone"], string(hashedCode))
+    grip.Set("code:" + body["phone"], string(hashedCode))
 
     if err != nil {
       return utils.Error(c, err)
@@ -48,18 +55,22 @@ func login(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    hashedCode, _ := bong.Get("code:" + body["phone"])
+    hashedCode, _ := grip.Get("code:" + body["phone"])
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
   
-    parent, err := bong.GetParent(bson.M{"phone": body["phone"]})
+    parent, err := grip.GetParent(
+      base.Query {
+        {"phone": body["phone"]},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
     if compareErr == nil {
-      bong.Del("code:" + body["phone"])
-      return c.JSON(bson.M{
+      grip.Del("code:" + body["phone"])
+      return c.JSON(map[string]interface{} {
         "parent": parent,
       })
     } else {
@@ -71,22 +82,23 @@ func login(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    parent, err := bong.GetParent(bson.M{"phone": body["phone"]})
+    parent, err := grip.GetParent(
+      base.Query {
+        {"phone": body["phone"]},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    token, err := bong.GenParentToken(parent)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token := grip.GenParentToken(parent)
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(parent.Passcode), []byte(body["passcode"]))
     if compareErr != nil {
       return utils.MessageError(c, "Parola introdus nu este valid")
     }
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "parent": parent,
       "token": token,
     })

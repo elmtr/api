@@ -1,30 +1,23 @@
 package teacher
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func homeroom(g fiber.Router) {
   hr := g.Group("/homeroom")
 
-  hr.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
-    var teacher bong.Teacher
-    utils.GetLocals(c, "teacher", &teacher)
-
-    return c.JSON(teacher)
-  })
-
   hr.Get("/", authMiddleware, func (c *fiber.Ctx) error {
-    var teacher bong.Teacher
+    var teacher grip.Teacher
     utils.GetLocals(c, "teacher", &teacher)
 
-    students, err := bong.GetStudents(
-      bson.M{
-        "grade.id": teacher.Homeroom.ID,
+    students, err := grip.GetStudents(
+      base.Query {
+        {"grade.key": teacher.Homeroom.Key},
       },
     )
     if err != nil {
@@ -35,13 +28,12 @@ func homeroom(g fiber.Router) {
   })
 
   hr.Get("/truancies", func (c *fiber.Ctx) error {
-    id := c.Query("id")
+    key := c.Query("key")
     
-    truancies, err := bong.GetTruancies(
-      bson.M{
-        "studentID": id,
+    truancies, err := grip.GetTruancies(
+      base.Query {
+        {"studentKey": key},
       },
-      bong.DateSort,
     )
     if err != nil {
       return utils.Error(c, err)

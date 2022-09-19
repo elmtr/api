@@ -1,13 +1,13 @@
 package admin
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
 	"strconv"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func teacher(g fiber.Router) {
@@ -16,9 +16,9 @@ func teacher(g fiber.Router) {
   teacher.Get("", authMiddleware, func (c *fiber.Ctx) error {
     phone := c.Query("phone")
 
-    teacher, err := bong.GetTeacher(
-      bson.M{
-        "phone": phone,
+    teacher, err := grip.GetTeacher(
+      base.Query {
+        {"phone": phone},
       },
     )
     if err != nil {
@@ -34,27 +34,29 @@ func teacher(g fiber.Router) {
 
     gradeNumber, _ := strconv.Atoi(body["gradeNumber"])
 
-    teacher, err := bong.GetTeacher(
-      bson.M{
-        "id": body["id"],
+    teacher, err := grip.GetTeacher(
+      base.Query {
+        {"key": body["key"]},
       },
     )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    subject, err := bong.GetSubject(
-      bson.M{
-        "name": body["name"],
-        "grade.gradeNumber": gradeNumber,
-        "grade.gradeLetter": body["gradeLetter"],
+    subject, err := grip.GetSubject(
+      base.Query {
+        {
+          "name": body["name"],
+          "grade.gradeNumber": gradeNumber,
+          "grade.gradeLetter": body["gradeLetter"],
+        },
       },
     )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    teacher.Subjects, err = bong.AddTeacherSubject(teacher.ID, teacher.Subjects, subject)
+    teacher.Subjects, err = grip.AddTeacherSubject(teacher.Key, teacher.Subjects, subject)
     if err != nil {
       return utils.Error(c, err)
     }
@@ -68,28 +70,29 @@ func teacher(g fiber.Router) {
 
     gradeNumber, _ := strconv.Atoi(body["gradeNumber"])
 
-
-    teacher, err := bong.GetTeacher(
-      bson.M{
-        "id": body["id"],
+    teacher, err := grip.GetTeacher(
+      base.Query {
+        {"key": body["key"]},
       },
     )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    subject, err := bong.GetSubject(
-      bson.M{
-        "name": body["name"],
-        "grade.gradeNumber": gradeNumber,
-        "grade.gradeLetter": body["gradeLetter"],
+    subject, err := grip.GetSubject(
+      base.Query {
+        {
+          "name": body["name"],
+          "grade.gradeNumber": gradeNumber,
+          "grade.gradeLetter": body["gradeLetter"],
+        },
       },
     )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    teacher.Subjects, err = bong.RemoveTeacherSubject(teacher.ID, teacher.Subjects, subject)
+    teacher.Subjects, err = grip.RemoveTeacherSubject(teacher.Key, teacher.Subjects, subject)
     if err != nil {
       return utils.Error(c, err)
     }
@@ -103,17 +106,19 @@ func teacher(g fiber.Router) {
 
     gradeNumber, _ := strconv.Atoi(body["gradeNumber"])
 
-    grade, err := bong.GetGrade(
-      bson.M{
-        "gradeNumber": gradeNumber,
-        "gradeLetter": body["gradeLetter"],
+    grade, err := grip.GetGrade(
+      base.Query{
+        {
+          "gradeNumber": gradeNumber,
+          "gradeLetter": body["gradeLetter"],
+        },
       },
     )
     if err != nil {
       return utils.MessageError(c, "nope")
     }
 
-    teacher, err := bong.UpdateTeacherHomeroom(body["id"], grade)
+    teacher, err := grip.UpdateTeacherHomeroom(body["key"], grade)
     if err != nil {
       return utils.Error(c, err)
     }

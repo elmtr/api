@@ -1,12 +1,13 @@
 package parent
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
+	"fmt"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,23 +15,20 @@ func signup(g fiber.Router) {
   signup := g.Group("/signup")
 
   signup.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
-    var parent bong.Parent
+    var parent grip.Parent
     utils.GetLocals(c, "parent", &parent)
     return c.JSON(parent)
   })
 
   signup.Post("/basic", func (c *fiber.Ctx) error {
-    var parent bong.Parent
+    var parent grip.Parent
     json.Unmarshal(c.Body(), &parent)
 
-    parent.Insert()
+    parent.Put()
 
-    token, err := bong.GenParentToken(parent)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token := grip.GenParentToken(parent)
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "parent": parent,
       "token": token,
     })
@@ -40,7 +38,12 @@ func signup(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    err := bong.UpdateParent(c.Locals("id"), bson.M{"phone": body["phone"]})
+    key := fmt.Sprintf("%v", c.Locals("id"))
+    err := grip.UpdateParent(key, 
+      base.Updates {
+        "phone": body["phone"],
+      },
+    )
 
     if err != nil {
       return utils.Error(c, err)
@@ -50,7 +53,7 @@ func signup(g fiber.Router) {
     utils.SendSMS("+4" + body["phone"], code)
 
     hashedCode, err := bcrypt.GenerateFromPassword([]byte(code), 10)
-    bong.Set("code:" + body["phone"], string(hashedCode))
+    grip.Set("code:" + body["phone"], string(hashedCode))
 
     if err != nil {
       return utils.Error(c, err)
@@ -63,27 +66,30 @@ func signup(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    hashedCode, _ := bong.Get("code:" + body["phone"])
+    hashedCode, _ := grip.Get("code:" + body["phone"])
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
 
-    err := bong.UpdateParent(c.Locals("id"), bson.M{"phone": body["phone"]})
+    key := fmt.Sprintf("%v", c.Locals("key"))
+    err := grip.UpdateParent(key, 
+      base.Updates {
+        "phone": body["phone"],
+      },
+    ) 
+
     if err != nil {
       return utils.Error(c, err)
     }
 
-    var parent bong.Parent
+    var parent grip.Parent
     utils.GetLocals(c, "parent", &parent)
     parent.Phone = body["phone"]
 
-    token, err := bong.GenParentToken(parent)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token := grip.GenParentToken(parent)
 
     if compareErr == nil {
-      bong.Del("code:" + body["phone"])
-      return c.JSON(bson.M{
+      grip.Del("code:" + body["phone"])
+      return c.JSON(map[string]interface{} {
         "token": token,
       })
     } else {
@@ -100,18 +106,26 @@ func signup(g fiber.Router) {
       return utils.Error(c, err)
     }
 
-    bong.UpdateParent(c.Locals("id"), bson.M{"password": string(hashedPassword)})
+    key := fmt.Sprintf("%v", c.Locals("id"))
+    grip.UpdateParent(key, base.Updates {
+        "password": string(hashedPassword),
+      },
+    )
 
     if err != nil {
       return utils.Error(c, err)
     }
 
-    parent, _ := bong.GetParent(bson.M{"id": c.Locals("id")})
+    parent, _ := grip.GetParent(
+      base.Query {
+        {"key": c.Locals("key")},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "parent": parent,
     })
   })
@@ -125,18 +139,26 @@ func signup(g fiber.Router) {
       return utils.Error(c, err)
     }
 
-    bong.UpdateParent(c.Locals("id"), bson.M{"passcode": string(hashedPasscode)})
+    key := fmt.Sprintf("%v", c.Locals("id"))
+    grip.UpdateParent(key, base.Updates {
+        "passcode": string(hashedPasscode),
+      },
+    )
 
     if err != nil {
       return utils.Error(c, err)
     }
 
-    parent, _ := bong.GetParent(bson.M{"id": c.Locals("id")})
+    parent, _ := grip.GetParent(
+      base.Query {
+        {"key": c.Locals("key")},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "parent": parent,
     })
   })

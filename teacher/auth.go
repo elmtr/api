@@ -1,11 +1,10 @@
 package teacher
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -17,29 +16,13 @@ func authMiddleware(c *fiber.Ctx) error {
   if string(authHeader) != "" && strings.HasPrefix(string(authHeader), "Bearer") {
     token = strings.Fields(string(authHeader))[1]
 
-    // we're just parsing the token
-    claims := &bong.TeacherClaims{}
-    tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface {}, error) {
-      return bong.JWTKey, nil
-    })
+    teacher, err := grip.ParseTeacherToken(token)
 
     if err != nil {
       return utils.Error(c, err)
     }
-
-    if !tkn.Valid {
-      return utils.MessageError(c, "token not valid")
-    }
-
-    c.Locals("id", claims.ID)
-    teacher := bong.Teacher {
-      ID: claims.ID,
-      FirstName: claims.FirstName,
-      LastName: claims.LastName,
-      Phone: claims.Phone,
-      Homeroom: claims.Homeroom,
-      Subjects: claims.Subjects,
-    }
+    
+    c.Locals("key", teacher.Key)
     utils.SetLocals(c, "teacher", teacher)
   }
 

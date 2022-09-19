@@ -1,12 +1,11 @@
 package admin
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,7 +16,7 @@ func login(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    admin, err := bong.GetAdmin(body["email"])
+    admin, err := grip.GetAdmin(body["email"])
     if err != nil {
       return utils.Error(c, err)
     }
@@ -27,12 +26,9 @@ func login(g fiber.Router) {
       return utils.MessageError(c, "parola e gresita")
     }
 
-    token, err := bong.GenAdminToken(admin)
-    if err != nil {
-      return utils.Error(c, err)
-    }
+    token := grip.GenAdminToken(admin)
 
-    return c.JSON(bson.M{
+    return c.JSON(map[string]interface{} {
       "admin": admin,
       "token": token,
     })

@@ -1,12 +1,12 @@
 package student
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 	"encoding/json"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,7 +14,7 @@ func profile(g fiber.Router) {
   profile := g.Group("/profile")
 
   profile.Get("/", authMiddleware, func (c *fiber.Ctx) error {
-    var student bong.Student
+    var student grip.Student
     utils.GetLocals(c, "student", &student)
 
     return c.JSON(student)
@@ -24,7 +24,11 @@ func profile(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    student, err := bong.GetStudent(bson.M{"id": c.Locals("id")})
+    student, err := grip.GetStudent(
+      base.Query {
+        {"id": c.Locals("id")},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
@@ -39,9 +43,9 @@ func profile(g fiber.Router) {
       return utils.Error(c, err)
     }
 
-    err = bong.UpdateStudent(
-      student.ID,
-      bson.M{
+    err = grip.UpdateStudent(
+      student.Key,
+      base.Updates {
         "password": string(newPassword),
       },
     )
@@ -57,7 +61,11 @@ func profile(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
-    student, err := bong.GetStudent(bson.M{"id": c.Locals("id")})
+    student, err := grip.GetStudent(
+      base.Query {
+        {"id": c.Locals("id")},
+      },
+    )
     if err != nil {
       return utils.Error(c, err)
     }
@@ -72,9 +80,9 @@ func profile(g fiber.Router) {
       return utils.Error(c, err)
     }
 
-    err = bong.UpdateStudent(
-      student.ID,
-      bson.M{
+    err = grip.UpdateStudent(
+      student.Key,
+      base.Updates {
         "passcode": string(newPasscode),
       },
     )

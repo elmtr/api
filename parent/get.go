@@ -1,18 +1,18 @@
 package parent
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func get(g fiber.Router) {
   g.Get("/student", authMiddleware, func (c *fiber.Ctx) error {
-    student, err := bong.GetStudent(
-      bson.M{
-        "id": c.Query("id"),
+    student, err := grip.GetStudent(
+      base.Query {
+        {"key": c.Query("key")},
       },
     )
     if err != nil {
@@ -23,12 +23,13 @@ func get(g fiber.Router) {
   })
 
   g.Get("/marks", authMiddleware, func (c *fiber.Ctx) error {
-    marks, err := bong.GetMarks(
-      bson.M{
-        "subjectID": c.Query("subjectID"),
-        "studentID": c.Query("studentID"),
+    marks, err := grip.GetMarks(
+      base.Query {
+        {
+          "subjectKey": c.Query("subjectKey"),
+          "studentKey": c.Query("studentKey"),
+        },
       },
-      bong.DateSort,
     )
     if err != nil {
       return utils.Error(c, err)
@@ -38,12 +39,13 @@ func get(g fiber.Router) {
   })
 
   g.Get("/truancies", authMiddleware, func (c *fiber.Ctx) error {
-    truancies, err := bong.GetTruancies(
-      bson.M{
-        "subjectID": c.Query("subjectID"),
-        "studentID": c.Query("studentID"),
+    truancies, err := grip.GetTruancies(
+      base.Query {
+        {
+          "subjectKey": c.Query("subjectKey"),
+          "studentKey": c.Query("studentKey"),
+        },
       },
-      bong.DateSort,
     )
     if err != nil {
       return utils.Error(c, err)
@@ -53,12 +55,13 @@ func get(g fiber.Router) {
   })
 
   g.Get("/draftmarks", authMiddleware, func (c *fiber.Ctx) error {
-    draftMarks, err := bong.GetDraftMarks(
-      bson.M{
-        "subjectID": c.Query("subjectID"),
-        "studentID": c.Query("studentID"),
+    draftMarks, err := grip.GetDraftMarks(
+      base.Query {
+        {
+          "subjectKey": c.Query("subjectKey"),
+          "studentKey": c.Query("studentKey"),
+        },
       },
-      bong.DateSort,
     )
     if err != nil {
       return utils.Error(c, err)
@@ -68,10 +71,12 @@ func get(g fiber.Router) {
   })
 
   g.Get("/points", authMiddleware, func (c *fiber.Ctx) error {
-    points, err := bong.GetPoints(
-      bson.M{
-        "subjectID": c.Query("subjectID"),
-        "studentID": c.Query("studentID"),
+    points, err := grip.GetPoints(
+      base.Query {
+        {
+          "subjectKey": c.Query("subjectKey"),
+          "studentKey": c.Query("studentKey"),
+        },
       },
     )
     if err != nil {

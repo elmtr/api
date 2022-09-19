@@ -1,44 +1,35 @@
 package parent
 
 import (
-	"api/bong"
+	"api/grip"
 	"api/utils"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func timetable(g fiber.Router) {
   tt := g.Group("/timetable")
 
   tt.Get("/", authMiddleware, func (c *fiber.Ctx) error {
-    var parent bong.Parent
+    var parent grip.Parent
     utils.GetLocals(c, "parent", &parent)
 
-    
-    studentID := c.Query("id")
-    student, err := bong.GetStudent(
-      bson.M{
-        "id": studentID,
+    student, err := grip.GetStudent(
+      base.Query {
+        {"key": c.Query("key")},
       },
     )
     if err != nil {
       return utils.Error(c, err)
     }
 
-    subjectsIDList := []string {}
-    for _, subject := range student.Subjects {
-      subjectsIDList = append(subjectsIDList, subject.ID)
-    }
-
-    periods, err := bong.GetPeriods(
-      bson.M{
-        "subject.id": bson.M{
-          "$in": subjectsIDList,
-        },
+    periods, err := grip.GetPeriods(
+      base.Query {
+        {"subject.grade.key": student.Grade.Key},
       },
-      bong.PeriodSort,
     )
+
     if err != nil {
       return utils.Error(c, err)
     }
