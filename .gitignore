@@ -7,3 +7,4 @@ api
 /grip
 /test
 env.go
+main
