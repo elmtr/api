@@ -96,7 +96,7 @@ func signup(g fiber.Router) {
       return utils.Error(c, err)
     }
 
-    key := fmt.Sprintf("%V", c.Locals("key"))
+    key := fmt.Sprintf("%v", c.Locals("key"))
     grip.UpdateTeacher(key, 
       base.Updates {
         "password": string(hashedPassword),
@@ -109,7 +109,7 @@ func signup(g fiber.Router) {
 
     teacher, _ := grip.GetTeacher(
       base.Query {
-        {"id": c.Locals("id")},
+        {"key": c.Locals("key")},
       },
     )
     if err != nil {
@@ -143,7 +143,7 @@ func signup(g fiber.Router) {
 
     teacher, _ := grip.GetTeacher(
       base.Query {
-        {"id": c.Locals("id")},
+        {"key": c.Locals("key")},
       },
     )
     if err != nil {

@@ -15,20 +15,18 @@ func timetable(g fiber.Router) {
     var teacher grip.Teacher
     utils.GetLocals(c, "teacher", &teacher)
 
-    subjectsKeyList := []string {}
+    var periods []grip.Period
     for _, subject := range teacher.Subjects {
-      subjectsKeyList = append(subjectsKeyList, subject.Key)
-    }
+      subjectPeriods, err := grip.GetPeriods(
+        base.Query {
+          {"subject.key": subject.Key},
+        },
+      )
+      if err != nil {
+        return utils.Error(c, err)
+      }
 
-    // TODO: do this operation for each and every subject 
-    // in the subjectsKeyList: deta doesn't support anything similar to $in
-    periods, err := grip.GetPeriods(
-      base.Query {
-        {"subject.key?contains": subjectsKeyList},
-      },
-    )
-    if err != nil {
-      return utils.Error(c, err)
+      periods = append(periods, subjectPeriods...)
     }
 
     return c.JSON(periods)

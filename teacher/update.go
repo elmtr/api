@@ -19,9 +19,7 @@ func update(g fiber.Router) {
   })
 
   g.Patch("/truancies", authMiddleware, func (c *fiber.Ctx) error {
-    key := c.Query("key")
-
-    err := grip.MotivateTruancy(key)
+    err := grip.MotivateTruancy(c.Query("key"))
     if err != nil {
       return utils.Error(c, err)
     }

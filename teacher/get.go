@@ -12,7 +12,7 @@ func get(g fiber.Router) {
   g.Get("/students", authMiddleware, func (c *fiber.Ctx) error {
     students, err := grip.GetStudents(
       base.Query {
-        {"grade.key": c.Query("grade")},
+        {"grade.key": c.Query("gradeKey")},
       },
     )
     if err != nil {

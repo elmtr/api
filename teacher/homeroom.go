@@ -28,7 +28,7 @@ func homeroom(g fiber.Router) {
   })
 
   hr.Get("/truancies", func (c *fiber.Ctx) error {
-    key := c.Query("key")
+    key := c.Query("studentKey")
     
     truancies, err := grip.GetTruancies(
       base.Query {
@@ -42,6 +42,21 @@ func homeroom(g fiber.Router) {
     return c.JSON(truancies)
   })
 
-  // TODO: also read the grade's timetable once i am done with figuring that out.
+  hr.Get("/timetable", authMiddleware, func (c *fiber.Ctx) error {
+    var teacher grip.Teacher
+    utils.GetLocals(c, "teacher", &teacher)
+
+    periods, err := grip.GetPeriods(
+      base.Query {
+        {"subject.grade.key": teacher.Homeroom.Key},
+      },
+    )
+    if err != nil {
+      return utils.Error(c, err)
+    }
+
+    return c.JSON(periods)
+  })
+
   // TODO: be able to close a year average mark: after the law gets clearer
 }
