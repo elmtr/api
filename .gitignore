@@ -8,3 +8,4 @@ api
 /test
 env.go
 main
+todos.txt
