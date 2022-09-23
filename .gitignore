@@ -9,3 +9,4 @@ api
 env.go
 main
 todos.txt
+intervals.json

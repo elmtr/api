@@ -11,6 +11,18 @@ import (
 func timetable(g fiber.Router) {
   tt := g.Group("/timetable")
 
+  tt.Get("/school", authMiddleware, func (c *fiber.Ctx) error {
+    var teacher grip.Teacher
+    utils.GetLocals(c, "teacher", &teacher)
+
+    school, err := grip.GetSchool(teacher.SchoolKey)
+    if err != nil {
+      return utils.Error(c, err)
+    }
+
+    return c.JSON(school)
+  })
+
   tt.Get("/", authMiddleware, func (c *fiber.Ctx) error {
     var teacher grip.Teacher
     utils.GetLocals(c, "teacher", &teacher)
