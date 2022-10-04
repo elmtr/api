@@ -9,6 +9,24 @@ import (
 )
 
 func get(g fiber.Router) {
+  g.Get("/subjects", authMiddleware, func (c *fiber.Ctx) error {
+    var student grip.Student
+    utils.GetLocals(c, "student", &student)
+
+    subjects, err := grip.GetSubjects(
+      base.Query {
+        {
+          "grade.gradeKey": student.Grade.Key,
+        },
+      },
+    )
+    if err != nil {
+      return utils.Error(c, err)
+    }
+
+    return c.JSON(subjects)
+  })
+
   g.Get("/marks", authMiddleware, func (c *fiber.Ctx) error {
     var student grip.Student
     utils.GetLocals(c, "student", &student)

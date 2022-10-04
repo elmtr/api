@@ -13,6 +13,18 @@ import (
 func timetable(g fiber.Router) {
   tt := g.Group("/timetable")
 
+  tt.Get("/school", authMiddleware, func (c *fiber.Ctx) error {
+    var student grip.Student
+    utils.GetLocals(c, "student", &student)
+
+    school, err := grip.GetSchool(student.Grade.SchoolKey)
+    if err != nil {
+      return utils.Error(c, err)
+    }
+
+    return c.JSON(school)
+  })
+
   tt.Get("/", authMiddleware, func (c *fiber.Ctx) error {
     var student grip.Student
     utils.GetLocals(c, "student", &student)
@@ -33,16 +45,18 @@ func timetable(g fiber.Router) {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
 
+    var student grip.Student
+    utils.GetLocals(c, "student", &student)
+
     interval, _ := strconv.Atoi(c.Query("interval"))
     day, _ := strconv.Atoi(c.Query("day"))
-    gradeKey := c.Query("gradeKey")
 
     currentPeriod, err := grip.GetPeriod(
       base.Query {
         {
           "interval": interval,
           "day": day,
-          "subject.grade.key": gradeKey,
+          "subject.grade.key": student.Grade.Key,
         },
       },
     )
@@ -54,7 +68,7 @@ func timetable(g fiber.Router) {
         {
           "interval": interval + 1,
           "day": day,
-          "subject.grade.key": gradeKey,
+          "subject.grade.key": student.Grade.Key,
         },
       },
     )
