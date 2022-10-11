@@ -10,7 +10,7 @@ import (
 
 // Encoding array
 var Encoding string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
-var CodeEncoding string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+var CodeEncoding string = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 func GenID() string {
   var ID string
