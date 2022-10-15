@@ -15,17 +15,46 @@ func student(g fiber.Router) {
 
   student.Get("", authMiddleware, func (c *fiber.Ctx) error {
     phone := c.Query("phone")
+    key := c.Query("key")
 
-    student, err := grip.GetStudent(
+    // getting one student by 
+    if (phone == "") {
+      student, err := grip.GetStudent(
+        base.Query {
+          {"key": key},
+        },
+      )
+      if err != nil {
+        return utils.Error(c, err)
+      }
+      return c.JSON(student)
+    } else {
+      student, err := grip.GetStudent(
+        base.Query {
+          {"phone": phone},
+        },
+      )
+      if err != nil {
+        return utils.Error(c, err)
+      }
+      return c.JSON(student)
+    }
+  })
+
+  student.Get("/grade", authMiddleware, func (c *fiber.Ctx) error {
+    gradeKey := c.Query("gradeKey")
+
+    // getting students by gradeKey 
+    students, err := grip.GetStudents(
       base.Query {
-        {"phone": phone},
+        {"grade.key": gradeKey},
       },
     )
     if err != nil {
       return utils.Error(c, err)
     }
-    
-    return c.JSON(student)
+
+    return c.JSON(students)
   })
 
   // student.Post("/subjects/add", authMiddleware, func (c *fiber.Ctx) error {

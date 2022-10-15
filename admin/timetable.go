@@ -84,7 +84,7 @@ func timetable(g fiber.Router) {
       },
     )
     if err != nil {
-      return utils.Error(c, err)
+      return utils.MessageError(c, "Nu s-a putut gasi materia introdusa")
     }
 
     err = grip.UpdatePeriod(c.Query("key"), subject, body["room"])
