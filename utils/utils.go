@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,8 +24,8 @@ func GenID() string {
 
 func GenCode() string {
   var code string
-  for i := 0; i < 4; i++ {
-    code += string(CodeEncoding[rand.Intn(36)])
+  for i := 0; i < 6; i++ {
+    code += strconv.Itoa(rand.Intn(10));
   }
   return code
 }

@@ -18,7 +18,7 @@ func SendSMS(to string, code string) (ok bool) {
   params := &openapi.CreateMessageParams {}
   params.SetTo(to)
   params.SetFrom(env.TwilioNumber)
-  params.SetBody(code + " este codul dumneavoastră de autentificare pentru elmtree.")
+  params.SetBody(code[0:3] + "-" + code[3:6] + " este codul dumneavoastră de autentificare pentru elmtree.")
 
   _, err := client.Api.CreateMessage(params)
   if err != nil {
