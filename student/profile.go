@@ -26,7 +26,7 @@ func profile(g fiber.Router) {
 
     student, err := grip.GetStudent(
       base.Query {
-        {"id": c.Locals("id")},
+        {"key": c.Locals("key")},
       },
     )
     if err != nil {
@@ -63,7 +63,7 @@ func profile(g fiber.Router) {
 
     student, err := grip.GetStudent(
       base.Query {
-        {"id": c.Locals("id")},
+        {"key": c.Locals("key")},
       },
     )
     if err != nil {

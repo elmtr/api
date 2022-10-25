@@ -33,4 +33,11 @@ func login(g fiber.Router) {
       "token": token,
     })
   })
+
+  login.Post("/start", func (c *fiber.Ctx) error {
+    admin := grip.Admin {}
+    admin.Put()
+    return c.SendString("ok")
+  })
 }
+

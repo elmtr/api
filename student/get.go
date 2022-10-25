@@ -16,7 +16,7 @@ func get(g fiber.Router) {
     subjects, err := grip.GetSubjects(
       base.Query {
         {
-          "grade.gradeKey": student.Grade.Key,
+          "grade.key": student.Grade.Key,
         },
       },
     )

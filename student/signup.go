@@ -21,17 +21,34 @@ func signup(g fiber.Router) {
   })
   
   signup.Post("/basic", func (c *fiber.Ctx) error {
-    var student grip.Student
-    json.Unmarshal(c.Body(), &student)
+    var body map[string]string
+    json.Unmarshal(c.Body(), &body)
 
-    student.Put()
+    if (grip.CheckStudent(body["phone"])) {
+      return utils.MessageError(c, "Exista deja un cont cu numarul acesta")
+    } else {
+      student := grip.Student {
+        LastName: body["lastName"],
+        FirstName: body["firstName"],
+      }
+      student.Put()
+      token := grip.GenStudentToken(student)
 
-    token := grip.GenStudentToken(student)
+      code := utils.GenCode()
+      utils.SendSMS("+4" + body["phone"], code)
 
-    return c.JSON(map[string]interface{} {
-      "student": student,
-      "token": token,
-    })
+      hashedCode, err := bcrypt.GenerateFromPassword([]byte(code), 10)
+      grip.Set("code:" + body["phone"], string(hashedCode))
+
+      if err != nil {
+        return utils.MessageError(c, "Problemă internă :(")
+      }
+
+      return c.JSON(map[string]interface{} {
+        "student": student,
+        "token": token,
+      })
+    }
   })
 
   signup.Post("/phone", authMiddleware, func (c *fiber.Ctx) error {
