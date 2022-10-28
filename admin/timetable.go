@@ -45,16 +45,35 @@ func timetable(g fiber.Router) {
     day, _ := strconv.Atoi(body["day"])
     interval, _ := strconv.Atoi(body["interval"])
 
-    subject, err := grip.GetSubject(
-      base.Query {
-        {
-          "name": body["name"],
-          "grade.key": body["gradeKey"],
+    var subject grip.Subject
+    var err error
+
+    if (body["name"] == "Consiliere") {
+      grade, err := grip.GetGrade(
+        base.Query {
+          {"key": body["gradeKey"]},
         },
-      },
-    )
-    if err != nil {
-      return utils.Error(c, err)
+      )
+      if err != nil {
+        return utils.Error(c, err)
+      }
+      subject = grip.Subject {
+        Key: "0",
+        Name: "Consiliere",
+        Grade: grade,
+      }
+    } else {
+      subject, err = grip.GetSubject(
+        base.Query {
+          {
+            "name": body["name"],
+            "grade.key": body["gradeKey"],
+          },
+        },
+      )
+      if err != nil {
+        return utils.Error(c, err)
+      }
     }
 
     period := grip.Period {

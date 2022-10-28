@@ -96,6 +96,7 @@ func signup(g fiber.Router) {
       grip.Del("code:" + body["phone"])
       return c.JSON(map[string]interface{} {
         "token": token,
+        "student": student,
       })
     } else {
       return utils.MessageError(c, "Codul introdus este greșit")
