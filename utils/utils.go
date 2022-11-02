@@ -27,6 +27,7 @@ func GenCode() string {
   for i := 0; i < 6; i++ {
     code += strconv.Itoa(rand.Intn(10));
   }
+  fmt.Println(code)
   return code
 }
 

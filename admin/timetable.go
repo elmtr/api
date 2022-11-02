@@ -101,19 +101,36 @@ func timetable(g fiber.Router) {
   tt.Patch("/", authMiddleware, func (c *fiber.Ctx) error {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
-    gradeNumber, _ := strconv.Atoi(body["gradeNumber"])
 
-    subject, err := grip.GetSubject(
-      base.Query {
-        {
-          "name": body["name"],
-          "grade.gradeNumber": gradeNumber,
-          "grade.gradeLetter": body["gradeLetter"],
+    var subject grip.Subject
+    var err error
+
+    if (body["name"] == "Consiliere") {
+      grade, err := grip.GetGrade(
+        base.Query {
+          {"key": body["gradeKey"]},
         },
-      },
-    )
-    if err != nil {
-      return utils.MessageError(c, "Nu s-a putut gasi materia introdusa")
+      )
+      if err != nil {
+        return utils.Error(c, err)
+      }
+      subject = grip.Subject {
+        Key: "0",
+        Name: "Consiliere",
+        Grade: grade,
+      }
+    } else {
+      subject, err = grip.GetSubject(
+        base.Query {
+          {
+            "name": body["name"],
+            "grade.key": body["gradeKey"],
+          },
+        },
+      )
+      if err != nil {
+        return utils.Error(c, err)
+      }
     }
 
     err = grip.UpdatePeriod(c.Query("key"), subject, body["room"])
