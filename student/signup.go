@@ -25,7 +25,7 @@ func signup(g fiber.Router) {
     json.Unmarshal(c.Body(), &body)
 
     if (grip.CheckStudent(body["phone"])) {
-      return utils.MessageError(c, "există deja un cont cu numarul acesta")
+      return utils.MessageError(c, "există deja un cont cu numărul acesta")
     } else {
       student := grip.Student {
         LastName: body["lastName"],
@@ -51,23 +51,6 @@ func signup(g fiber.Router) {
     }
   })
 
-  signup.Post("/phone", authMiddleware, func (c *fiber.Ctx) error {
-    var body map[string]string
-    json.Unmarshal(c.Body(), &body)
-
-    code := utils.GenCode()
-    utils.SendSMS("+4" + body["phone"], code)
-
-    hashedCode, err := bcrypt.GenerateFromPassword([]byte(code), 10)
-    grip.Set("code:" + body["phone"], string(hashedCode))
-
-    if err != nil {
-      return utils.MessageError(c, "problemă internă :(")
-    }
-
-    return c.JSON(body["phone"])
-  })
-
   signup.Post("/verify-code", authMiddleware, func (c *fiber.Ctx) error {
     var body map[string]string
     json.Unmarshal(c.Body(), &body)
@@ -77,7 +60,7 @@ func signup(g fiber.Router) {
     compareErr := bcrypt.CompareHashAndPassword([]byte(hashedCode), []byte(body["code"]))
 
     key := fmt.Sprintf("%v", c.Locals("key"))
-    err := grip.UpdateStudent(key, 
+    err := grip.UpdateStudent(key,
       base.Updates{
         "phone": body["phone"],
       },
