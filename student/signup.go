@@ -25,7 +25,7 @@ func signup(g fiber.Router) {
     json.Unmarshal(c.Body(), &body)
 
     if (grip.CheckStudent(body["phone"])) {
-      return utils.MessageError(c, "Exista deja un cont cu numarul acesta")
+      return utils.MessageError(c, "există deja un cont cu numarul acesta")
     } else {
       student := grip.Student {
         LastName: body["lastName"],
@@ -41,7 +41,7 @@ func signup(g fiber.Router) {
       grip.Set("code:" + body["phone"], string(hashedCode))
 
       if err != nil {
-        return utils.MessageError(c, "Problemă internă :(")
+        return utils.MessageError(c, "problemă internă :(")
       }
 
       return c.JSON(map[string]interface{} {
@@ -62,7 +62,7 @@ func signup(g fiber.Router) {
     grip.Set("code:" + body["phone"], string(hashedCode))
 
     if err != nil {
-      return utils.Error(c, err)
+      return utils.MessageError(c, "problemă internă :(")
     }
 
     return c.JSON(body["phone"])
@@ -83,7 +83,7 @@ func signup(g fiber.Router) {
       },
     )
     if err != nil {
-      return utils.Error(c, err)
+      return utils.MessageError(c, "problemă internă :(")
     }
   
     var student grip.Student
@@ -99,7 +99,7 @@ func signup(g fiber.Router) {
         "student": student,
       })
     } else {
-      return utils.MessageError(c, "Codul introdus este greșit")
+      return utils.MessageError(c, "codul introdus este greșit")
     }
   })
 
@@ -110,7 +110,7 @@ func signup(g fiber.Router) {
     key := fmt.Sprintf("%v", c.Locals("key"))
     student, err := grip.StudentSetup(key, grade)
     if err != nil {
-      return utils.Error(c, err)
+      return utils.MessageError(c, "problemă internă :(")
     }
 
     token := grip.GenStudentToken(student)
@@ -127,7 +127,7 @@ func signup(g fiber.Router) {
 
     hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body["password"]), 10)
     if err != nil {
-      return utils.Error(c, err)
+      return utils.MessageError(c, "problemă internă :(")
     }
 
     key := fmt.Sprintf("%v", c.Locals("key"))
@@ -138,7 +138,7 @@ func signup(g fiber.Router) {
     )
 
     if err != nil {
-      return utils.Error(c, err)
+      return utils.MessageError(c, "problemă internă :(")
     }
 
     student, _ := grip.GetStudent(
@@ -147,7 +147,7 @@ func signup(g fiber.Router) {
       },
     )
     if err != nil {
-      return utils.Error(c, err)
+      return utils.MessageError(c, "problemă internă :(")
     }
 
     return c.JSON(map[string]interface{} {
@@ -161,7 +161,7 @@ func signup(g fiber.Router) {
 
     hashedPasscode, err := bcrypt.GenerateFromPassword([]byte(body["passcode"]), 10)
     if err != nil {
-      return utils.Error(c, err)
+      return utils.MessageError(c, "problemă internă :(")
     }
 
     key := fmt.Sprintf("%v", c.Locals("key"))
@@ -171,18 +171,11 @@ func signup(g fiber.Router) {
       },
     )
 
-    if err != nil {
-      return utils.Error(c, err)
-    }
-
     student, _ := grip.GetStudent(
       base.Query {
         {"key": c.Locals("key")},
       },
     )
-    if err != nil {
-      return utils.Error(c, err)
-    }
 
     return c.JSON(map[string]interface{} {
       "student": student,

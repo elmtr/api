@@ -34,7 +34,7 @@ func login(g fiber.Router) {
   
     compareErr := bcrypt.CompareHashAndPassword([]byte(student.Password), []byte(body["password"]))
     if compareErr != nil {
-      return utils.MessageError(c, "Parola introdusă nu este validă")
+      return utils.MessageError(c, "parola introdusă nu este validă")
     }
     
     code := utils.GenCode()
@@ -73,7 +73,7 @@ func login(g fiber.Router) {
         "student": student,
       })
     } else {
-      return utils.MessageError(c, "Codul introdus este greșit")
+      return utils.MessageError(c, "codul introdus este greșit")
     }
   })
 
@@ -94,7 +94,7 @@ func login(g fiber.Router) {
 
     compareErr := bcrypt.CompareHashAndPassword([]byte(student.Passcode), []byte(body["passcode"]))
     if compareErr != nil {
-      return utils.MessageError(c, "Parola introdus nu este valid")
+      return utils.MessageError(c, "PIN-ul introdus nu este corect")
     }
 
     return c.JSON(map[string]interface{} {
