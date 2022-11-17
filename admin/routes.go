@@ -14,4 +14,5 @@ func Routes(app *fiber.App) {
   teacher(g)
   timetable(g)
   admin(g)
+  populate(g)
 }

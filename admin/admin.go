@@ -13,7 +13,7 @@ func admin(g fiber.Router) {
   g.Get("/test", authMiddleware, func (c *fiber.Ctx) error {
     return c.SendString("hello world")
   })
-
+  
   g.Get("/grades", authMiddleware, func (c *fiber.Ctx) error {
     var admin grip.Admin
     utils.GetLocals(c, "admin", &admin)
